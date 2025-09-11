@@ -1,0 +1,21 @@
+{
+  "sectionId": "Section2",
+  "rooms": [
+    {
+      "id": "Room4",
+      "position": { "x": 30, "y": -0.5, "z": 0 },
+      "size": { "width": 10, "height": 1, "depth": 10 },
+      "type": "corridor",
+      "connections": ["Room5"]
+    },
+    {
+      "id": "Room5",
+      "position": { "x": 40, "y": -0.5, "z": 0 },
+      "size": { "width": 10, "height": 1, "depth": 10 },
+      "type": "end",
+      "connections": ["Room4"]
+    }
+  ],
+  "triggerPosition": { "x": 45, "y": 0, "z": 0 },
+  "nextSectionFile": ""
+}

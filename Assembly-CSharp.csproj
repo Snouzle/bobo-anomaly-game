@@ -49,6 +49,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets/Scripts/MouseLook.cs" />
+    <Compile Include="Assets/Scripts/EntityEventHandler.cs" />
+    <Compile Include="Assets/Scripts/TriggerScript.cs" />
     <Compile Include="Assets/InputSystem_Actions.cs" />
     <Compile Include="Assets/TutorialInfo/Scripts/Readme.cs" />
     <Compile Include="Assets/Scripts/PlayerMovement.cs" />

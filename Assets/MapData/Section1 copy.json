@@ -1,0 +1,91 @@
+{
+  "sectionId": "Section1",
+  "entities": [
+    {
+      "id": "Room1",
+      "position": { "x": 10, "y": -0.5, "z": 0 },
+      "size": { "width": 10, "height": 1, "depth": 10 },
+      "type": "start",
+      "connections": ["Room2"],
+      "texture": "",
+      "animations": [
+        {
+          "name": "idle",
+          "clip": "Animations/RoomIdle",
+          "loop": true,
+          "speed": 1.0
+        },
+        {
+          "name": "activate",
+          "clip": "Animations/RoomActivate",
+          "loop": false,
+          "speed": 1.5
+        }
+      ],
+      "events": [
+        // {
+        //   "trigger": "onPlayerEnter",
+        //   "actions": [
+        //     {
+        //       "type": "playAnimation",
+        //       "animationName": "activate",
+        //       "soundPath": "",
+        //       "volume": 0.0,
+        //       "text": "",
+        //       "duration": 0.0
+        //     },
+        //     {
+        //       "type": "playSound",
+        //       "animationName": "",
+        //       "soundPath": "Sounds/RoomEnter",
+        //       "volume": 0.8,
+        //       "text": "",
+        //       "duration": 0.0
+        //     }
+        //   ]
+        // },
+        // {
+        //   "trigger": "onDistance",
+        //   "condition": {
+        //     "distance": 5.0
+        //   },
+        //   "actions": [
+        //     {
+        //       "type": "showDialog",
+        //       "animationName": "",
+        //       "soundPath": "",
+        //       "volume": 0.0,
+        //       "text": "Welcome to the start room!",
+        //       "duration": 3.0
+        //     }
+        //   ]
+        // }
+      ]
+    },
+    {
+      "id": "Room2",
+      "position": { "x": 10, "y": -0.5, "z": 0 },
+      "size": { "width": 10, "height": 1, "depth": 10 },
+      "type": "corridor",
+      "connections": ["Room1", "Room3"],
+      "texture": "",
+      "animations": [],
+      "events": []
+    },
+    {
+      "id": "Room3",
+      "position": { "x": 20, "y": -0.5, "z": 0 },
+      "size": { "width": 10, "height": 1, "depth": 10 },
+      "type": "end",
+      "connections": ["Room2"],
+      "texture": "",
+      "animations": [],
+      "events": []
+    }
+  ],
+  "triggerBox": {
+    "position": { "x": 25, "y": 1, "z": 0 },
+    "size": { "width": 2, "height": 2, "depth": 2 }
+  },
+  "nextSectionFile": "Section2.json"
+}

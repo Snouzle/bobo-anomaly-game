@@ -90,7 +90,7 @@ public class MapManager : MonoBehaviour
     private GameObject currentSectionObject;
     public Transform player;
 
-    public int anomalyPercentChance = 20;
+    public int anomalyPercentChance = 30;
 
     private Section sectionInfo = new Section
     {

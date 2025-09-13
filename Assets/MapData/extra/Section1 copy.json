@@ -23,43 +23,43 @@
         }
       ],
       "events": [
-        // {
-        //   "trigger": "onPlayerEnter",
-        //   "actions": [
-        //     {
-        //       "type": "playAnimation",
-        //       "animationName": "activate",
-        //       "soundPath": "",
-        //       "volume": 0.0,
-        //       "text": "",
-        //       "duration": 0.0
-        //     },
-        //     {
-        //       "type": "playSound",
-        //       "animationName": "",
-        //       "soundPath": "Sounds/RoomEnter",
-        //       "volume": 0.8,
-        //       "text": "",
-        //       "duration": 0.0
-        //     }
-        //   ]
-        // },
-        // {
-        //   "trigger": "onDistance",
-        //   "condition": {
-        //     "distance": 5.0
-        //   },
-        //   "actions": [
-        //     {
-        //       "type": "showDialog",
-        //       "animationName": "",
-        //       "soundPath": "",
-        //       "volume": 0.0,
-        //       "text": "Welcome to the start room!",
-        //       "duration": 3.0
-        //     }
-        //   ]
-        // }
+        {
+          "trigger": "onPlayerEnter",
+          "actions": [
+            {
+              "type": "playAnimation",
+              "animationName": "activate",
+              "soundPath": "",
+              "volume": 0.0,
+              "text": "",
+              "duration": 0.0
+            },
+            {
+              "type": "playSound",
+              "animationName": "",
+              "soundPath": "Sounds/RoomEnter",
+              "volume": 0.8,
+              "text": "",
+              "duration": 0.0
+            }
+          ]
+        },
+        {
+          "trigger": "onDistance",
+          "condition": {
+            "distance": 5.0
+          },
+          "actions": [
+            {
+              "type": "showDialog",
+              "animationName": "",
+              "soundPath": "",
+              "volume": 0.0,
+              "text": "Welcome to the start room!",
+              "duration": 3.0
+            }
+          ]
+        }
       ]
     },
     {

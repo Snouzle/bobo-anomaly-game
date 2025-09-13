@@ -1,9 +1,10 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using System.IO;
+using UnityEngine;
 using Assets.Scripts;
-using System;
+using TMPro;
 
 [System.Serializable]
 public class Vector3Data
@@ -70,6 +71,9 @@ public class TriggerBoxData
 {
     public Vector3Data position;
     public SizeData size;
+    public bool valid;
+    public Vector3Data newOrigin;
+    public Vector3Data newRotation;
 }
 
 [System.Serializable]
@@ -77,64 +81,97 @@ public class SectionData
 {
     public string sectionId;
     public EntityData[] entities;
-    public TriggerBoxData triggerBox;
-    public string nextSectionFile;
+    public TriggerBoxData[] triggerBoxes;
 }
 
 public class MapManager : MonoBehaviour
 {
-    public string initialSectionFile = "Section1.json";
     private SectionData currentSection;
     private GameObject currentSectionObject;
     public Transform player;
 
-    private Vector3 originPosition = new Vector3(0, 0, 0);
+    public int anomalyPercentChance = 20;
 
-    private Quaternion originRotation = Quaternion.Euler(0, 0, 0);
+    private Section sectionInfo = new Section
+    {
+        origin = new Vector3(0, 0, 0),
+        rotation = Quaternion.Euler(0, 0, 0)
+    };
 
-    private int mapSize = 30; // TODO: Extract this out
+    private int passCounter = 0; // TODO: Handle this in another class
+
+    private string anomalyDirectory = Path.Combine(Application.dataPath, "MapData", "anomaly");
+
+    private string defaultMapPath = Path.Combine(Application.dataPath, "MapData", "default.json");
+
+    private string[] anomalyMaps = new string[] { };
 
     void Start()
     {
-        LoadSection(initialSectionFile);
+        anomalyMaps = Directory.GetFiles(anomalyDirectory, "*.json");
+        LoadSection(sectionInfo, defaultMapPath);
     }
 
     void Update()
     {
-        // Trigger detection now handled by OnTriggerEnter
     }
 
-    void LoadSection(string fileName)
+    void LoadSection(Section nextSection, string sectionFilePath)
     {
-        string path = Path.Combine(Application.dataPath, "MapData", fileName);
-        if (File.Exists(path))
+        print(passCounter); // DEBUG
+
+        if (File.Exists(sectionFilePath))
         {
-            string json = File.ReadAllText(path);
+            string json = File.ReadAllText(sectionFilePath);
             currentSection = JsonUtility.FromJson<SectionData>(json);
-            GenerateSection();
         }
-    }
-
-    void GenerateSection()
-    {
-
 
         if (currentSectionObject != null)
         {
             Destroy(currentSectionObject);
-            originPosition = new Vector3(mapSize - originPosition.x, 0, -15 - originPosition.z);
-            originRotation = originRotation * Quaternion.Euler(0, 180, 0);
+            sectionInfo.origin += sectionInfo.rotation * nextSection.origin;
+            sectionInfo.rotation *= nextSection.rotation;
         }
 
         currentSectionObject = new GameObject("CurrentSection");
 
-        foreach (var entity in currentSection.entities)
+        SpawnEntities(currentSection.entities, sectionInfo, currentSectionObject.transform);
+
+        CreateTriggerColliders(currentSection.triggerBoxes, sectionInfo, currentSectionObject.transform);
+    }
+
+    public void LoadValidSection(Section section)
+    {
+        passCounter++;
+
+        var isAnomaly = UnityEngine.Random.Range(1, 101) > anomalyPercentChance;
+
+        if (isAnomaly)
+        {
+            var anomalyIndex = UnityEngine.Random.Range(0, anomalyMaps.Length);
+            LoadSection(section, Path.Combine(anomalyDirectory, anomalyMaps[anomalyIndex]));
+        }
+        else
+        {
+            LoadSection(section, defaultMapPath);
+        }
+    }
+
+    public void LoadInvalidSection(Section section)
+    {
+        passCounter = 0;
+        LoadSection(section, defaultMapPath);
+    }
+
+    private void SpawnEntities(EntityData[] entities, Section section, Transform parent)
+    {
+        foreach (var entity in entities)
         {
             GameObject obj = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            obj.transform.position = originPosition + originRotation * entity.position.ToVector3();
-            obj.transform.rotation = originRotation;
+            obj.transform.position = section.origin + section.rotation * entity.position.ToVector3();
+            obj.transform.rotation = section.rotation;
             obj.transform.localScale = new Vector3(entity.size.width, entity.size.height, entity.size.depth);
-            obj.transform.parent = currentSectionObject.transform;
+            obj.transform.parent = parent;
             obj.name = entity.id;
 
             // Apply texture
@@ -177,7 +214,7 @@ public class MapManager : MonoBehaviour
                 EntityEventHandler handler = obj.AddComponent<EntityEventHandler>();
                 handler.events = entity.events;
                 // Add collider for trigger if needed
-                if (System.Array.Exists(entity.events, e => e.trigger == "onPlayerEnter"))
+                if (Array.Exists(entity.events, e => e.trigger == "onPlayerEnter"))
                 {
                     BoxCollider triggerCollider = obj.AddComponent<BoxCollider>();
                     triggerCollider.isTrigger = true;
@@ -185,23 +222,31 @@ public class MapManager : MonoBehaviour
                 }
             }
         }
-
-        // Create trigger collider
-        GameObject triggerObj = new GameObject("TriggerBox");
-        triggerObj.transform.position = originPosition + originRotation * currentSection.triggerBox.position.ToVector3();
-        BoxCollider collider = triggerObj.AddComponent<BoxCollider>();
-        collider.size = new Vector3(currentSection.triggerBox.size.width, currentSection.triggerBox.size.height, currentSection.triggerBox.size.depth);
-        collider.isTrigger = true;
-        TriggerScript triggerScript = triggerObj.AddComponent<TriggerScript>();
-        triggerScript.mapManager = this;
-        triggerObj.transform.parent = currentSectionObject.transform;
     }
 
-    public void LoadNextSection()
+    private void CreateTriggerColliders(TriggerBoxData[] boxes, Section section, Transform parent)
     {
-        if (!string.IsNullOrEmpty(currentSection.nextSectionFile))
+        if (boxes != null)
         {
-            LoadSection(currentSection.nextSectionFile);
+            for (int i = 0; i < boxes.Length; i++)
+            {
+                var triggerData = boxes[i];
+                GameObject triggerObj = new GameObject($"TriggerBox_{i}");
+                triggerObj.transform.position = section.origin + section.rotation * triggerData.position.ToVector3();
+                BoxCollider collider = triggerObj.AddComponent<BoxCollider>();
+                collider.size = new Vector3(triggerData.size.width, triggerData.size.height, triggerData.size.depth);
+                collider.isTrigger = true;
+                TriggerScript triggerScript = triggerObj.AddComponent<TriggerScript>();
+                triggerScript.mapManager = this;
+
+                triggerScript.targetSection = new Section
+                {
+                    valid = triggerData.valid,
+                    origin = triggerData.newOrigin.ToVector3(),
+                    rotation = Quaternion.Euler(triggerData.newRotation.x, triggerData.newRotation.y, triggerData.newRotation.z)
+                };
+                triggerObj.transform.parent = parent;
+            }
         }
     }
 }

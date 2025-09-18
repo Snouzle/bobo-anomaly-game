@@ -48,13 +48,20 @@
     <Analyzer Include="/Applications/Unity/Hub/Editor/6000.2.3f1/Unity.app/Contents/Tools/Unity.SourceGenerators/Unity.UIToolkit.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets/Scripts/SectionSO.cs" />
+    <Compile Include="Assets/Scripts/EntitySO.cs" />
+    <Compile Include="Assets/Scripts/ConditionDataSO.cs" />
     <Compile Include="Assets/Scripts/MouseLook.cs" />
     <Compile Include="Assets/Scripts/EntityEventHandler.cs" />
+    <Compile Include="Assets/Scripts/EventDataSO.cs" />
     <Compile Include="Assets/Scripts/TriggerScript.cs" />
     <Compile Include="Assets/InputSystem_Actions.cs" />
     <Compile Include="Assets/TutorialInfo/Scripts/Readme.cs" />
+    <Compile Include="Assets/Scripts/AnimationDataSO.cs" />
     <Compile Include="Assets/Scripts/PlayerMovement.cs" />
     <Compile Include="Assets/Scripts/MapManager.cs" />
+    <Compile Include="Assets/Scripts/ActionDataSO.cs" />
+    <Compile Include="Assets/Scripts/TriggerBoxDataSO.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

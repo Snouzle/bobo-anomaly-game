@@ -86,7 +86,7 @@ public class SectionData
 
 public class MapManager : MonoBehaviour
 {
-    private SectionData currentSection;
+    private SectionSO currentSection;
     private GameObject currentSectionObject;
     public Transform player;
 
@@ -100,31 +100,30 @@ public class MapManager : MonoBehaviour
 
     private int passCounter = 0; // TODO: Handle this in another class
 
-    private string anomalyDirectory = Path.Combine(Application.dataPath, "MapData", "anomaly");
+    public string defaultSectionPath = "Sections/default"; // Path in Resources
 
-    private string defaultMapPath = Path.Combine(Application.dataPath, "MapData", "default.json");
-
-    private string[] anomalyMaps = new string[] { };
+    private int anomaliesCount = 1; // How to set this, 
 
     void Start()
     {
-        anomalyMaps = Directory.GetFiles(anomalyDirectory, "*.json");
-        LoadSection(sectionInfo, defaultMapPath);
+        LoadSection(sectionInfo, defaultSectionPath);
     }
 
     void Update()
     {
     }
 
-    void LoadSection(Section nextSection, string sectionFilePath)
+    void LoadSection(Section nextSection, string sectionPath)
     {
         print(passCounter); // DEBUG
 
-        if (File.Exists(sectionFilePath))
+        SectionSO sectionSO = Resources.Load<SectionSO>(sectionPath);
+        if (sectionSO == null)
         {
-            string json = File.ReadAllText(sectionFilePath);
-            currentSection = JsonUtility.FromJson<SectionData>(json);
+            Debug.LogError("Failed to load SectionSO from path: " + sectionPath);
+            return;
         }
+        currentSection = sectionSO;
 
         if (currentSectionObject != null)
         {
@@ -148,40 +147,35 @@ public class MapManager : MonoBehaviour
 
         if (isAnomaly)
         {
-            var anomalyIndex = UnityEngine.Random.Range(0, anomalyMaps.Length);
-            LoadSection(section, Path.Combine(anomalyDirectory, anomalyMaps[anomalyIndex]));
+            var anomalyIndex = UnityEngine.Random.Range(1, anomaliesCount+1);
+            LoadSection(section, GetAnomalySectionFileName(anomalyIndex));
         }
         else
         {
-            LoadSection(section, defaultMapPath);
+            LoadSection(section, defaultSectionPath);
         }
     }
 
     public void LoadInvalidSection(Section section)
     {
         passCounter = 0;
-        LoadSection(section, defaultMapPath);
+        LoadSection(section, defaultSectionPath);
     }
 
-    private void SpawnEntities(EntityData[] entities, Section section, Transform parent)
+    private void SpawnEntities(EntitySO[] entities, Section section, Transform parent)
     {
         foreach (var entity in entities)
         {
-            GameObject obj = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            obj.transform.position = section.origin + section.rotation * entity.position.ToVector3();
-            obj.transform.rotation = section.rotation;
-            obj.transform.localScale = new Vector3(entity.size.width, entity.size.height, entity.size.depth);
+            GameObject obj = GameObject.CreatePrimitive(PrimitiveType.Cube); // TODO: Replace with asset
+            obj.transform.SetPositionAndRotation(section.origin + section.rotation * entity.position, section.rotation);
+            obj.transform.localScale = entity.size;
             obj.transform.parent = parent;
             obj.name = entity.id;
 
             // Apply texture
-            if (!string.IsNullOrEmpty(entity.texture))
+            if (entity.texture != null)
             {
-                Texture2D tex = Resources.Load<Texture2D>(entity.texture);
-                if (tex != null)
-                {
-                    obj.GetComponent<Renderer>().material.mainTexture = tex;
-                }
+                obj.GetComponent<Renderer>().material.mainTexture = entity.texture;
             }
 
             // Apply animations
@@ -190,10 +184,9 @@ public class MapManager : MonoBehaviour
                 Animation animationComponent = obj.AddComponent<Animation>();
                 foreach (var anim in entity.animations)
                 {
-                    AnimationClip clip = Resources.Load<AnimationClip>(anim.clip);
-                    if (clip != null)
+                    if (anim.clip != null)
                     {
-                        animationComponent.AddClip(clip, anim.name);
+                        animationComponent.AddClip(anim.clip, anim.name);
                         if (anim.loop)
                         {
                             animationComponent[anim.name].wrapMode = WrapMode.Loop;
@@ -218,13 +211,13 @@ public class MapManager : MonoBehaviour
                 {
                     BoxCollider triggerCollider = obj.AddComponent<BoxCollider>();
                     triggerCollider.isTrigger = true;
-                    triggerCollider.size = new Vector3(entity.size.width, entity.size.height, entity.size.depth);
+                    triggerCollider.size = entity.size;
                 }
             }
         }
     }
 
-    private void CreateTriggerColliders(TriggerBoxData[] boxes, Section section, Transform parent)
+    private void CreateTriggerColliders(TriggerBoxDataSO[] boxes, Section section, Transform parent)
     {
         if (boxes != null)
         {
@@ -232,9 +225,9 @@ public class MapManager : MonoBehaviour
             {
                 var triggerData = boxes[i];
                 GameObject triggerObj = new GameObject($"TriggerBox_{i}");
-                triggerObj.transform.position = section.origin + section.rotation * triggerData.position.ToVector3();
+                triggerObj.transform.position = section.origin + section.rotation * triggerData.position;
                 BoxCollider collider = triggerObj.AddComponent<BoxCollider>();
-                collider.size = new Vector3(triggerData.size.width, triggerData.size.height, triggerData.size.depth);
+                collider.size = triggerData.size;
                 collider.isTrigger = true;
                 TriggerScript triggerScript = triggerObj.AddComponent<TriggerScript>();
                 triggerScript.mapManager = this;
@@ -242,11 +235,16 @@ public class MapManager : MonoBehaviour
                 triggerScript.targetSection = new Section
                 {
                     valid = triggerData.valid,
-                    origin = triggerData.newOrigin.ToVector3(),
+                    origin = triggerData.newOrigin,
                     rotation = Quaternion.Euler(triggerData.newRotation.x, triggerData.newRotation.y, triggerData.newRotation.z)
                 };
                 triggerObj.transform.parent = parent;
             }
         }
+    }
+
+    private string GetAnomalySectionFileName(int anomaly_idx)
+    {
+        return $"Sections/Anomaly{anomaly_idx}";
     }
 }

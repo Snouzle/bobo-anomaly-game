@@ -6,7 +6,7 @@ namespace Assets.Scripts
 {
     public class EntityEventHandler : MonoBehaviour
     {
-        public EventData[] events;
+        public EventDataSO[] events;
         private Animator animator;
         private AudioSource audioSource;
         private Transform player;
@@ -54,7 +54,7 @@ namespace Assets.Scripts
             }
         }
 
-        private void ExecuteActions(ActionData[] actions)
+        private void ExecuteActions(ActionDataSO[] actions)
         {
             foreach (var action in actions)
             {
@@ -67,13 +67,9 @@ namespace Assets.Scripts
                         }
                         break;
                     case "playSound":
-                        if (!string.IsNullOrEmpty(action.soundPath))
+                        if (action.sound != null)
                         {
-                            AudioClip clip = Resources.Load<AudioClip>(action.soundPath);
-                            if (clip != null)
-                            {
-                                audioSource.PlayOneShot(clip, action.volume);
-                            }
+                            audioSource.PlayOneShot(action.sound, action.volume);
                         }
                         break;
                     case "showDialog":

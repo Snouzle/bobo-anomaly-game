@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets/TutorialInfo/Scripts/Editor/ReadmeEditor.cs" />
+    <Compile Include="Assets/Scripts/Editor/JsonToSOConverter.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Library/PackageCache/com.unity.collab-proxy@ab839cc7d2ad/Lib/Editor/Localization/commontypes.ko.txt" />

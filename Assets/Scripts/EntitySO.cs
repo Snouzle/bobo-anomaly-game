@@ -11,7 +11,16 @@ namespace Assets.Scripts
         public string type;
         public string[] connections;
         public Texture2D texture;
+        public Mesh mesh;
         public AnimationDataSO[] animations;
         public EventDataSO[] events;
+
+        private int counter = 0;
+
+        void OnEnable()
+        {
+            MonoBehaviour.print(counter);
+            counter++;
+        }
     }
 }

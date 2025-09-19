@@ -62,6 +62,7 @@ public class EntityData
     public string type;
     public string[] connections;
     public string texture;
+    public string mesh;
     public AnimationData[] animations;
     public EventData[] events;
 }
@@ -102,7 +103,7 @@ public class MapManager : MonoBehaviour
 
     public string defaultSectionPath = "Sections/default"; // Path in Resources
 
-    private int anomaliesCount = 1; // How to set this, 
+    private int anomaliesCount = 2; // How to set this, 
 
     void Start()
     {
@@ -166,7 +167,35 @@ public class MapManager : MonoBehaviour
     {
         foreach (var entity in entities)
         {
-            GameObject obj = GameObject.CreatePrimitive(PrimitiveType.Cube); // TODO: Replace with asset
+            GameObject obj;
+            if (entity.mesh != null)
+            {
+                // Use custom mesh
+                obj = new GameObject();
+                MeshFilter meshFilter = obj.AddComponent<MeshFilter>();
+                meshFilter.sharedMesh = entity.mesh;
+                MeshRenderer meshRenderer = obj.AddComponent<MeshRenderer>();
+
+                // Create appropriate material based on render pipeline
+                Material material = null;
+                if (entity.texture != null)
+                {
+                    // If we have a texture, create a material with it
+                    material = new Material(GetDefaultShader());
+                    material.mainTexture = entity.texture;
+                }
+                else
+                {
+                    // No texture, just use default material
+                    material = new Material(GetDefaultShader());
+                }
+                meshRenderer.material = material;
+            }
+            else
+            {
+                // Fallback to cube
+                obj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            }
             obj.transform.SetPositionAndRotation(section.origin + section.rotation * entity.position, section.rotation);
             obj.transform.localScale = entity.size;
             obj.transform.parent = parent;
@@ -175,7 +204,11 @@ public class MapManager : MonoBehaviour
             // Apply texture
             if (entity.texture != null)
             {
-                obj.GetComponent<Renderer>().material.mainTexture = entity.texture;
+                Renderer renderer = obj.GetComponent<Renderer>();
+                if (renderer != null)
+                {
+                    renderer.material.mainTexture = entity.texture;
+                }
             }
 
             // Apply animations
@@ -245,6 +278,27 @@ public class MapManager : MonoBehaviour
 
     private string GetAnomalySectionFileName(int anomaly_idx)
     {
-        return $"Sections/Anomaly{anomaly_idx}";
+        return $"Sections/Anomalies/Anomaly{anomaly_idx}";
+    }
+
+    private Shader GetDefaultShader()
+    {
+        // Try URP first (Universal Render Pipeline)
+        Shader urpShader = Shader.Find("Universal Render Pipeline/Lit");
+        if (urpShader != null)
+            return urpShader;
+
+        // Try HDRP (High Definition Render Pipeline)
+        Shader hdrpShader = Shader.Find("HDRP/Lit");
+        if (hdrpShader != null)
+            return hdrpShader;
+
+        // Fallback to Standard shader (built-in pipeline)
+        Shader standardShader = Shader.Find("Standard");
+        if (standardShader != null)
+            return standardShader;
+
+        // Last resort - any available shader
+        return Shader.Find("Diffuse") ?? Shader.Find("Specular") ?? Shader.Find("VertexLit");
     }
 }

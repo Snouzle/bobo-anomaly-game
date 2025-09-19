@@ -64,6 +64,49 @@ public class JsonToSOConverter : EditorWindow
                 entitySO.texture = AssetDatabase.LoadAssetAtPath<Texture2D>(entity.texture);
             }
 
+            // Load mesh if path exists
+            if (!string.IsNullOrEmpty(entity.mesh))
+            {
+                if (entity.mesh.StartsWith("Primitive:"))
+                {
+                    // Handle primitive meshes
+                    string primitiveType = entity.mesh.Replace("Primitive:", "");
+                    PrimitiveType type = PrimitiveType.Cube; // Default
+
+                    switch (primitiveType)
+                    {
+                        case "Cube":
+                            type = PrimitiveType.Cube;
+                            break;
+                        case "Sphere":
+                            type = PrimitiveType.Sphere;
+                            break;
+                        case "Cylinder":
+                            type = PrimitiveType.Cylinder;
+                            break;
+                        case "Capsule":
+                            type = PrimitiveType.Capsule;
+                            break;
+                        case "Plane":
+                            type = PrimitiveType.Plane;
+                            break;
+                        case "Quad":
+                            type = PrimitiveType.Quad;
+                            break;
+                    }
+
+                    // Create temporary primitive to get its mesh
+                    GameObject tempObj = GameObject.CreatePrimitive(type);
+                    entitySO.mesh = tempObj.GetComponent<MeshFilter>().sharedMesh;
+                    DestroyImmediate(tempObj);
+                }
+                else
+                {
+                    // Load custom mesh asset
+                    entitySO.mesh = AssetDatabase.LoadAssetAtPath<Mesh>(entity.mesh);
+                }
+            }
+
             // Convert animations
             List<AnimationDataSO> animSOs = new List<AnimationDataSO>();
             foreach (var anim in entity.animations)

@@ -8,6 +8,7 @@ public class JsonToSOConverter : EditorWindow
 {
     private string jsonPath = "Assets/MapData/anomaly/Section_1.json"; // Example path
     private string outputFolder = "Assets/Resources/Sections/"; // Folder to save SOs (for Resources.Load)
+    private string entitiesFolder = "Assets/Resources/Entities/"; // Folder to save EntitySOs
 
     [MenuItem("Tools/Convert JSON to SOs")]
     static void ShowWindow()
@@ -47,21 +48,56 @@ public class JsonToSOConverter : EditorWindow
         // Save the main SO first
         AssetDatabase.CreateAsset(sectionSO, assetPath);
 
+        // Ensure entities folder exists
+        Directory.CreateDirectory(entitiesFolder);
+
         // Convert entities
         List<EntitySO> entitySOs = new List<EntitySO>();
         foreach (var entity in sectionData.entities)
         {
-            EntitySO entitySO = CreateInstance<EntitySO>();
+            string entityPath = Path.Combine(entitiesFolder, $"{entity.id}.asset");
+            EntitySO entitySO = AssetDatabase.LoadAssetAtPath<EntitySO>(entityPath);
+
+            bool isNew = entitySO == null;
+            if (isNew)
+            {
+                entitySO = CreateInstance<EntitySO>();
+                AssetDatabase.CreateAsset(entitySO, entityPath);
+            }
+
+            // Populate/update data
             entitySO.id = entity.id;
             entitySO.position = entity.position.ToVector3();
             entitySO.size = new Vector3(entity.size.width, entity.size.height, entity.size.depth);
             entitySO.type = entity.type;
             entitySO.connections = entity.connections;
+            Debug.Log($"Populated EntitySO {entitySO.id} with position {entitySO.position}, size {entitySO.size}");
 
-            // Load texture if path exists
-            if (!string.IsNullOrEmpty(entity.texture))
+            // Load textures and create materials
+            if (entity.textures != null && entity.textures.Length > 0)
             {
-                entitySO.texture = AssetDatabase.LoadAssetAtPath<Texture2D>(entity.texture);
+                Material[] mats = new Material[entity.textures.Length];
+                for (int i = 0; i < entity.textures.Length; i++)
+                {
+                    Texture2D tex = AssetDatabase.LoadAssetAtPath<Texture2D>(entity.textures[i]);
+                    Material mat = new Material(GetDefaultShader());
+                    mat.name = entity.id + "_Material_" + i;
+                    if (tex != null)
+                    {
+                        mat.mainTexture = tex;
+                    }
+                    mats[i] = mat;
+                    AssetDatabase.AddObjectToAsset(mat, entitySO);
+                }
+                entitySO.materials = mats;
+            }
+            else
+            {
+                // No textures, create one default material
+                Material mat = new Material(GetDefaultShader());
+                mat.name = entity.id + "_Material";
+                entitySO.materials = new Material[] { mat };
+                AssetDatabase.AddObjectToAsset(mat, entitySO);
             }
 
             // Load mesh if path exists
@@ -116,7 +152,7 @@ public class JsonToSOConverter : EditorWindow
                 animSO.clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(anim.clip);
                 animSO.loop = anim.loop;
                 animSO.speed = anim.speed;
-                AssetDatabase.AddObjectToAsset(animSO, sectionSO);
+                AssetDatabase.AddObjectToAsset(animSO, entitySO);
                 animSOs.Add(animSO);
             }
             entitySO.animations = animSOs.ToArray();
@@ -132,7 +168,7 @@ public class JsonToSOConverter : EditorWindow
                 {
                     ConditionDataSO condSO = CreateInstance<ConditionDataSO>();
                     condSO.distance = evt.condition.distance;
-                    AssetDatabase.AddObjectToAsset(condSO, sectionSO);
+                    AssetDatabase.AddObjectToAsset(condSO, entitySO);
                     eventSO.condition = condSO;
                 }
 
@@ -146,16 +182,20 @@ public class JsonToSOConverter : EditorWindow
                     actionSO.volume = action.volume;
                     actionSO.text = action.text;
                     actionSO.duration = action.duration;
-                    AssetDatabase.AddObjectToAsset(actionSO, sectionSO);
+                    AssetDatabase.AddObjectToAsset(actionSO, entitySO);
                     actionSOs.Add(actionSO);
                 }
                 eventSO.actions = actionSOs.ToArray();
-                AssetDatabase.AddObjectToAsset(eventSO, sectionSO);
+                AssetDatabase.AddObjectToAsset(eventSO, entitySO);
                 eventSOs.Add(eventSO);
             }
             entitySO.events = eventSOs.ToArray();
 
-            AssetDatabase.AddObjectToAsset(entitySO, sectionSO);
+            // Mark dirty and save the entitySO
+            EditorUtility.SetDirty(entitySO);
+            AssetDatabase.SaveAssets();
+            Debug.Log($"Saved EntitySO {entitySO.id} with position {entitySO.position}, size {entitySO.size}");
+
             entitySOs.Add(entitySO);
         }
         sectionSO.entities = entitySOs.ToArray();
@@ -180,5 +220,26 @@ public class JsonToSOConverter : EditorWindow
         // Log the Resources path for loading
         string resourcesPath = assetPath.Replace("Assets/Resources/", "").Replace(".asset", "");
         Debug.Log($"Conversion complete! Load with Resources.Load<SectionSO>(\"{resourcesPath}\")");
+    }
+
+    private Shader GetDefaultShader()
+    {
+        // Try URP first (Universal Render Pipeline)
+        Shader urpShader = Shader.Find("Universal Render Pipeline/Lit");
+        if (urpShader != null)
+            return urpShader;
+
+        // Try HDRP (High Definition Render Pipeline)
+        Shader hdrpShader = Shader.Find("HDRP/Lit");
+        if (hdrpShader != null)
+            return hdrpShader;
+
+        // Fallback to Standard shader (built-in pipeline)
+        Shader standardShader = Shader.Find("Standard");
+        if (standardShader != null)
+            return standardShader;
+
+        // Last resort - any available shader
+        return Shader.Find("Diffuse") ?? Shader.Find("Specular") ?? Shader.Find("VertexLit");
     }
 }

@@ -12,6 +12,7 @@ namespace Assets.Scripts
         public string[] connections;
         public Texture2D texture;
         public Mesh mesh;
+        public Material[] materials;
         public AnimationDataSO[] animations;
         public EventDataSO[] events;
 
@@ -19,7 +20,7 @@ namespace Assets.Scripts
 
         void OnEnable()
         {
-            MonoBehaviour.print(counter);
+            MonoBehaviour.print(id);
             counter++;
         }
     }

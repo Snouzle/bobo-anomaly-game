@@ -5,6 +5,7 @@ using System.IO;
 using UnityEngine;
 using Assets.Scripts;
 using TMPro;
+using Unity.VisualScripting;
 
 [System.Serializable]
 public class Vector3Data
@@ -61,7 +62,7 @@ public class EntityData
     public SizeData size;
     public string type;
     public string[] connections;
-    public string texture;
+    public string[] textures;
     public string mesh;
     public AnimationData[] animations;
     public EventData[] events;
@@ -103,7 +104,7 @@ public class MapManager : MonoBehaviour
 
     public string defaultSectionPath = "Sections/default"; // Path in Resources
 
-    private int anomaliesCount = 2; // How to set this, 
+    private int anomaliesCount = 3; // How to set this, 
 
     void Start()
     {
@@ -176,20 +177,21 @@ public class MapManager : MonoBehaviour
                 meshFilter.sharedMesh = entity.mesh;
                 MeshRenderer meshRenderer = obj.AddComponent<MeshRenderer>();
 
-                // Create appropriate material based on render pipeline
-                Material material = null;
-                if (entity.texture != null)
+                // Use the materials from EntitySO
+                if (entity.materials != null && entity.materials.Length > 0)
                 {
-                    // If we have a texture, create a material with it
-                    material = new Material(GetDefaultShader());
-                    material.mainTexture = entity.texture;
+                    if (entity.mesh != null && entity.mesh.subMeshCount > 1 && entity.materials.Length == entity.mesh.subMeshCount)
+                    {
+                        meshRenderer.materials = entity.materials;
+                    }
+                    else
+                    {
+                        meshRenderer.material = entity.materials[0];
+                    }
                 }
-                else
-                {
-                    // No texture, just use default material
-                    material = new Material(GetDefaultShader());
-                }
-                meshRenderer.material = material;
+
+                // Add collider
+                BoxCollider collider = obj.AddComponent<BoxCollider>();
             }
             else
             {

@@ -1,5 +1,5 @@
 {
-    "sectionId": "Anomaly2",
+    "sectionId": "Anomaly3",
     "entities": [
         {
             "id": "Floor",
@@ -15,7 +15,9 @@
             },
             "type": "corridor",
             "connections": [],
-            "texture": "",
+            "textures": [
+                ""
+            ],
             "mesh": "Primitive:Cube",
             "animations": [],
             "events": []
@@ -34,7 +36,9 @@
             },
             "type": "corridor",
             "connections": [],
-            "texture": "",
+            "textures": [
+                ""
+            ],
             "mesh": "Primitive:Cube",
             "animations": [],
             "events": []
@@ -53,7 +57,9 @@
             },
             "type": "corridor",
             "connections": [],
-            "texture": "",
+            "textures": [
+                ""
+            ],
             "mesh": "Primitive:Cube",
             "animations": [],
             "events": []
@@ -72,7 +78,9 @@
             },
             "type": "corridor",
             "connections": [],
-            "texture": "",
+            "textures": [
+                ""
+            ],
             "mesh": "Primitive:Cube",
             "animations": [],
             "events": []
@@ -91,7 +99,9 @@
             },
             "type": "corridor",
             "connections": [],
-            "texture": "",
+            "textures": [
+                ""
+            ],
             "mesh": "Primitive:Cube",
             "animations": [],
             "events": []
@@ -110,7 +120,9 @@
             },
             "type": "corridor",
             "connections": [],
-            "texture": "",
+            "textures": [
+                ""
+            ],
             "mesh": "Primitive:Cube",
             "animations": [],
             "events": []
@@ -129,13 +141,15 @@
             },
             "type": "corridor",
             "connections": [],
-            "texture": "",
+            "textures": [
+                ""
+            ],
             "mesh": "Primitive:Cube",
             "animations": [],
             "events": []
         },
         {
-            "id": "Wall_front_Anomaly2",
+            "id": "Wall_front_Anomaly1",
             "position": {
                 "x": 40.0,
                 "y": 4.0,
@@ -148,8 +162,10 @@
             },
             "type": "corridor",
             "connections": [],
-            "texture": "",
-            "mesh": "Primitive:Sphere",
+            "textures": [
+                ""
+            ],
+            "mesh": "Primitive:Cube",
             "animations": [],
             "events": []
         },
@@ -167,8 +183,35 @@
             },
             "type": "corridor",
             "connections": [],
-            "texture": "",
+            "textures": [
+                ""
+            ],
             "mesh": "Primitive:Cube",
+            "animations": [],
+            "events": []
+        },
+        {
+            "id": "Building",
+            "position": {
+                "x": 16.760000228881837,
+                "y": 3.5299999713897707,
+                "z": -7.350000381469727
+            },
+            "size": {
+                "width": 100.0,
+                "height": 100.0,
+                "depth": 100.0
+            },
+            "type": "corridor",
+            "connections": [],
+            "textures": [
+                "Assets/low poly medieval buildings/Materials/bricks_albedo.tga",
+                "Assets/low poly medieval buildings/Materials/bricks_albedo.tga",
+                "Assets/low poly medieval buildings/Materials/bricks_albedo.tga",
+                "Assets/low poly medieval buildings/Materials/roof_albedo.tga",
+                "Assets/low poly medieval buildings/Materials/planks_albedo.tga"
+            ],
+            "mesh": "Assets/low poly medieval buildings/barrack.fbx",
             "animations": [],
             "events": []
         }

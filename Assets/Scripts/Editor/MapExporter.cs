@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEditor;
 using System.IO;
 using System.Collections.Generic;
+using System.Linq;
 using Assets.Scripts;
 
 public class MapExporter : EditorWindow
@@ -104,6 +105,14 @@ public class MapExporter : EditorWindow
                     }
                 }
 
+                // Get textures from MeshRenderer
+                string[] texturePaths = new string[] { "" };
+                MeshRenderer renderer = obj.GetComponent<MeshRenderer>();
+                if (renderer != null && renderer.materials != null && renderer.materials.Length > 0)
+                {
+                    texturePaths = renderer.materials.Select(m => m.mainTexture != null ? AssetDatabase.GetAssetPath(m.mainTexture) : "").ToArray();
+                }
+
                 entities.Add(new EntityData
                 {
                     id = obj.name,
@@ -111,7 +120,7 @@ public class MapExporter : EditorWindow
                     size = new SizeData { width = obj.transform.localScale.x, height = obj.transform.localScale.y, depth = obj.transform.localScale.z },
                     type = "corridor", // Customize based on your logic
                     connections = new string[] { }, // Add logic to determine connections
-                    texture = "", // Path to texture asset
+                    textures = texturePaths,
                     mesh = meshPath,
                     animations = new AnimationData[] { }, // Add animation data if applicable
                     events = new EventData[] { } // Add event data if applicable

@@ -3,6 +3,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using Assets.Scripts;
 using System.Collections.Generic;
+using System.IO;
 
 [CustomEditor(typeof(SectionSO))]
 public class SectionSOEditor : Editor
@@ -61,7 +62,32 @@ public class SectionSOEditor : Editor
         // Instantiate entities from SO
         foreach (var entity in sectionSO.entities)
         {
-            GameObject obj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            GameObject obj;
+            if (entity.mesh != null)
+            {
+                obj = new GameObject();
+                MeshFilter meshFilter = obj.AddComponent<MeshFilter>();
+                meshFilter.sharedMesh = entity.mesh;
+                MeshRenderer meshRenderer = obj.AddComponent<MeshRenderer>();
+                if (entity.materials != null && entity.materials.Length > 0)
+                {
+                    if (entity.mesh.subMeshCount > 1 && entity.materials.Length == entity.mesh.subMeshCount)
+                    {
+                        meshRenderer.materials = entity.materials;
+                    }
+                    else
+                    {
+                        meshRenderer.material = entity.materials[0];
+                    }
+                }
+                // Add collider
+                BoxCollider collider = obj.AddComponent<BoxCollider>();
+                collider.size = entity.size;
+            }
+            else
+            {
+                obj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            }
             obj.transform.position = entity.position;
             obj.transform.localScale = entity.size;
             obj.name = entity.id;
@@ -92,6 +118,9 @@ public class SectionSOEditor : Editor
             return;
         }
 
+        string entitiesFolder = "Assets/Resources/Entities/";
+        Directory.CreateDirectory(entitiesFolder);
+
         List<EntitySO> entities = new List<EntitySO>();
         List<TriggerBoxDataSO> triggers = new List<TriggerBoxDataSO>();
 
@@ -110,7 +139,14 @@ public class SectionSOEditor : Editor
             else
             {
                 // It's an entity
-                EntitySO entitySO = CreateInstance<EntitySO>();
+                string entityPath = Path.Combine(entitiesFolder, $"{child.name}.asset");
+                EntitySO entitySO = AssetDatabase.LoadAssetAtPath<EntitySO>(entityPath);
+                if (entitySO == null)
+                {
+                    entitySO = CreateInstance<EntitySO>();
+                    AssetDatabase.CreateAsset(entitySO, entityPath);
+                }
+
                 entitySO.id = child.name;
                 entitySO.position = child.position;
                 entitySO.size = child.localScale;
@@ -174,9 +210,19 @@ public class SectionSOEditor : Editor
                     }
                 }
 
+                // Get materials from MeshRenderer
+                MeshRenderer renderer = child.GetComponent<MeshRenderer>();
+                if (renderer != null)
+                {
+                    entitySO.materials = renderer.materials;
+                }
+
+                // Save the entitySO
+                EditorUtility.SetDirty(entitySO);
+                AssetDatabase.SaveAssets();
+
                 // Populate other fields as needed
                 entities.Add(entitySO);
-                AssetDatabase.AddObjectToAsset(entitySO, sectionSO);
             }
         }
 
